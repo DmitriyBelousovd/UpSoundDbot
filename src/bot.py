@@ -1,5 +1,6 @@
 from aiogram import Dispatcher, F
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from src.config import Settings
@@ -14,6 +15,14 @@ def build_dispatcher(settings: Settings) -> Dispatcher:
     async def handle_start(message: Message) -> None:
         await message.answer(
             "Привет! Отправьте ссылку на трек из Яндекс.Музыки.\n"
+            "Поддерживаемый формат: https://music.yandex.ru/album/<id>/track/<id>"
+        )
+
+    @dp.message(Command("reset"))
+    async def handle_reset(message: Message, state: FSMContext) -> None:
+        await state.clear()
+        await message.answer(
+            "Состояние сброшено. Отправьте ссылку на трек из Яндекс.Музыки.\n"
             "Поддерживаемый формат: https://music.yandex.ru/album/<id>/track/<id>"
         )
 

@@ -123,6 +123,25 @@ def _extract_from_meta_tags(soup: BeautifulSoup) -> Optional[TrackInfo]:
     return None
 
 
+def _detect_block_reason(html: str, final_url: str) -> Optional[str]:
+    text = html.lower()
+    final_url_lower = final_url.lower()
+
+    if "недоступна в вашем регионе" in text:
+        return "Трек недоступен из региона сервера. Попробуйте другой хостинг/регион."
+
+    captcha_markers = (
+        "/checkbox",
+        "captcha",
+        "smartcaptcha",
+        "__ssr_data__",
+    )
+    if any(marker in text for marker in captcha_markers) or "/checkbox" in final_url_lower:
+        return "Яндекс.Музыка временно запросила проверку (captcha). Попробуйте позже."
+
+    return None
+
+
 async def fetch_track_info(url: str, timeout_seconds: int = 10) -> TrackInfo:
     validation = validate_track_url(url)
     if not validation.is_valid:
@@ -142,6 +161,10 @@ async def fetch_track_info(url: str, timeout_seconds: int = 10) -> TrackInfo:
 
     if response.status_code >= 400:
         raise TrackError("Трек недоступен или ссылка не открывается.")
+
+    block_reason = _detect_block_reason(response.text, str(response.url))
+    if block_reason:
+        raise TrackError(block_reason)
 
     soup = BeautifulSoup(response.text, "html.parser")
     parsed = _extract_from_ld_json(soup) or _extract_from_meta_tags(soup)

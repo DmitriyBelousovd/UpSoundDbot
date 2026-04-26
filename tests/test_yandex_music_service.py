@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 
 from src.services.yandex_music import (
+    _detect_block_reason,
     _extract_from_ld_json,
     _parse_duration_seconds,
     validate_track_url,
@@ -42,3 +43,17 @@ def test_extract_from_ld_json_parses_music_recording() -> None:
     assert track.title == "My Song"
     assert track.artist == "My Artist"
     assert track.duration_seconds == 205
+
+
+def test_detect_block_reason_for_region_restriction() -> None:
+    html = "<html><body>Яндекс Музыка недоступна в вашем регионе</body></html>"
+    reason = _detect_block_reason(html, "https://music.yandex.ru/album/1/track/2")
+    assert reason is not None
+    assert "региона" in reason
+
+
+def test_detect_block_reason_for_captcha_page() -> None:
+    html = "<script>window.__SSR_DATA__={url:'/ru/checkbox'}</script>"
+    reason = _detect_block_reason(html, "https://music.yandex.ru/ru/checkbox?k=abc")
+    assert reason is not None
+    assert "captcha" in reason.lower()

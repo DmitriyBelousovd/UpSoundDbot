@@ -2,46 +2,40 @@ import asyncio
 import logging
 
 from aiogram import Bot
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiohttp import web
 
 from src.bot import build_dispatcher
-from src.config import load_settings
+from src.config import Settings
+from dotenv import load_dotenv
+import os
+
+
+def _load_local_settings() -> Settings:
+    load_dotenv()
+    bot_token = os.getenv("BOT_TOKEN", "").strip()
+    if not bot_token:
+        raise ValueError("BOT_TOKEN is not set. Put it in .env file.")
+
+    timeout_raw = os.getenv("REQUEST_TIMEOUT_SECONDS", "10").strip()
+    try:
+        timeout = int(timeout_raw)
+    except ValueError as exc:
+        raise ValueError("REQUEST_TIMEOUT_SECONDS must be an integer.") from exc
+
+    if timeout <= 0:
+        raise ValueError("REQUEST_TIMEOUT_SECONDS must be positive.")
+
+    return Settings(bot_token=bot_token, request_timeout_seconds=timeout)
 
 
 async def _run() -> None:
-    settings = load_settings()
+    settings = _load_local_settings()
     logging.basicConfig(level=logging.INFO)
 
     bot = Bot(token=settings.bot_token)
     dispatcher = build_dispatcher(settings)
-    webhook_url = f"{settings.webhook_base_url}{settings.webhook_path}"
-    app = web.Application()
-
-    SimpleRequestHandler(dispatcher=dispatcher, bot=bot).register(app, path=settings.webhook_path)
-    setup_application(app, dispatcher, bot=bot)
-
-    async def _on_startup(_: web.Application) -> None:
-        await bot.set_webhook(url=webhook_url)
-        logging.info("Webhook set to %s", webhook_url)
-
-    async def _on_shutdown(_: web.Application) -> None:
-        await bot.delete_webhook(drop_pending_updates=False)
-        await bot.session.close()
-
-    app.on_startup.append(_on_startup)
-    app.on_shutdown.append(_on_shutdown)
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, host="0.0.0.0", port=settings.port)
-    await site.start()
-    logging.info("Web server started on port %s", settings.port)
-
-    try:
-        await asyncio.Event().wait()
-    finally:
-        await runner.cleanup()
+    # If webhook was previously configured (e.g. Render), polling won't receive updates.
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dispatcher.start_polling(bot)
 
 
 def main() -> None:

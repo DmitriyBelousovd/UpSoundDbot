@@ -12,7 +12,8 @@ Telegram-бот для тестового задания UpSound.
 
 ## Структура проекта
 
-- `src/main.py` - точка входа приложения
+- `src/main.py` - локальный запуск (polling)
+- `src/main_render.py` - запуск для Render (webhook)
 - `src/bot.py` - обработчики Telegram
 - `src/services/yandex_music.py` - валидация ссылок и извлечение метаданных
 - `src/utils/link_parser.py` - извлечение URL из текста
@@ -29,9 +30,7 @@ Telegram-бот для тестового задания UpSound.
 pip install -r requirements.txt
 ```
 
-4. Скопируйте `.env.example` в `.env` и заполните:
-   - `BOT_TOKEN`
-   - `WEBHOOK_BASE_URL` (например, URL Render-сервиса)
+4. Скопируйте `.env.example` в `.env` и заполните `BOT_TOKEN`
 5. Запустите:
 
 ```bash
@@ -58,15 +57,16 @@ pip install -r requirements.txt
 5. Команда запуска:
 
 ```bash
-python -m src.main
+python -m src.main_render
 ```
 
-6. Добавьте переменные окружения:
+6. Скопируйте `.env.render.example` и используйте эти значения как шаблон.
+7. Добавьте переменные окружения:
    - `BOT_TOKEN`
    - `REQUEST_TIMEOUT_SECONDS=10`
    - `WEBHOOK_BASE_URL=https://<service-name>.onrender.com`
    - `WEBHOOK_PATH=/tg/webhook`
-7. Включите авто-пересборку и мониторинг логов.
+8. Включите авто-пересборку и мониторинг логов.
 
 ## Материалы для сдачи
 

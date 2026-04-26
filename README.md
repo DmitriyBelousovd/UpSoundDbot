@@ -29,7 +29,9 @@ Telegram-бот для тестового задания UpSound.
 pip install -r requirements.txt
 ```
 
-4. Скопируйте `.env.example` в `.env` и заполните `BOT_TOKEN`
+4. Скопируйте `.env.example` в `.env` и заполните:
+   - `BOT_TOKEN`
+   - `WEBHOOK_BASE_URL` (например, URL Render-сервиса)
 5. Запустите:
 
 ```bash
@@ -42,7 +44,7 @@ python -m src.main
 pytest
 ```
 
-## Деплой (пример для Render)
+## Деплой (Render Web Service)
 
 1. Отправьте репозиторий в GitHub.
 2. Создайте новый Render Web Service из репозитория.
@@ -62,6 +64,8 @@ python -m src.main
 6. Добавьте переменные окружения:
    - `BOT_TOKEN`
    - `REQUEST_TIMEOUT_SECONDS=10`
+   - `WEBHOOK_BASE_URL=https://<service-name>.onrender.com`
+   - `WEBHOOK_PATH=/tg/webhook`
 7. Включите авто-пересборку и мониторинг логов.
 
 ## Материалы для сдачи

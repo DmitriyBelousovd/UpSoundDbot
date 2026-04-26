@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: upsound-yandex-track-bot
     env: python
     buildCommand: pip install -r requirements.txt
@@ -10,3 +10,7 @@ services:
         sync: false
       - key: REQUEST_TIMEOUT_SECONDS
         value: "10"
+      - key: WEBHOOK_BASE_URL
+        sync: false
+      - key: WEBHOOK_PATH
+        value: "/tg/webhook"
